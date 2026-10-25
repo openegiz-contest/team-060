@@ -1,43 +1,70 @@
-# <Team name>: a digital mine on OpenEgiz
+# TeamSpirit: цифровой двойник карьера типа Актогай на OpenEgiz
 
-> Team Repository of the contest “Digital Mine on OpenEgiz”. **Replace the contents of this file with the instructions for your Submission.** The AI Jury runs the Submission strictly by these instructions, from scratch, in the Judge Environment. Accepted languages: English, Kazakh, Russian.
+Пульт горного диспетчера: двойники карьера в Eclipse Ditto, модель цикла «экскаватор → самосвал → ККД / отвал» с модулем диспетчеризации и поддержки решений, сценарии «что если» и карта карьера, анимированная данными двойников. Замысел, модули и сценарии описаны в [SUBMISSION.md](SUBMISSION.md).
 
-> **Start with the Concept**, the first section of [SUBMISSION.md](SUBMISSION.md): the Team writes it before any code. What AI agents build from this Template without a Concept is the Default Solution, published on the [contest site](https://openegiz-contest.github.io/) as the low bar: a Submission that does not go beyond it gets low levels in the Rubric. AI agents read [AGENTS.md](AGENTS.md).
+## Запуск с нуля (чистая Ubuntu 24.04 с Docker)
 
-## Running
-
-Requirements (Docker, `make`, Windows/WSL2 setup) are in [OPENEGIZ.md](OPENEGIZ.md) / [OPENEGIZ.ru.md](OPENEGIZ.ru.md).
+Выполните из корня репозитория:
 
 ```bash
-sudo apt install -y make   # if make is missing (clean Ubuntu)
-make up            # the OpenEgiz platform
-make example-mine  # the Example Mine: twins, simulator, dashboard
+sudo apt-get update && sudo apt-get install -y make
+make pit
 ```
 
-Replace these commands with the commands of your Submission. The Submission must start by following these instructions without manual intervention (Rules, clause 6.4); downloading datasets and models and building are also listed here.
+`make pit` поднимает платформу OpenEgiz (`make up`: генерирует пароли, загружает около 2,3 ГБ образов, ждёт готовности Ditto), а затем запускает решение команды (`team/compose.yml`). Решение состоит из трёх частей:
 
-## What to open
+- `pit-setup` создаёт 37 двойников карьера в Ditto;
+- `pit-simulator` — модель карьера и модуль диспетчеризации; телеметрию шлёт через MQTT → Ditto, сценарии читает из двойника `kz.aktogay.pit:control`;
+- `pit-console` — пульт диспетчера на http://localhost:8095.
 
-- Grafana: the address and login are printed by `make up`.
-- <where to see the mine visualization, which dashboards>
+Кроме того, в Grafana добавляется дашборд с KPI. Первый запуск занимает 5–15 минут, повторные укладываются в минуту. Команда завершается, когда всё готово, и печатает адреса и пароли.
 
-## Repository contents
+Другие команды:
 
-| Path | Contents |
+| Команда | Что делает |
 |---|---|
-| `team/` | Directory for the Team's code. Using it is optional: any part may be changed, including the platform core |
-| `SUBMISSION.md` | Description of the Submission: **required** |
-| `presentation.pdf` | Presentation: **required**, in the repository root |
-| `AGENTS.md`, `CLAUDE.md` | Instructions for your AI agents (Codex, Claude Code and others read them automatically) |
-| `examples/mine/` | The Example Mine: shows how a digital mine is built on OpenEgiz. It is not a basis for the Submission |
-| `OPENEGIZ.md`, `OPENEGIZ.ru.md` | Documentation of the OpenEgiz platform v1.0.4 |
+| `make pit` | Платформа и карьер. После первого запуска `make up` / `make down` включают и карьер |
+| `make scenario K=ramp_a_closed V=true` | Включает сценарий «что если» через двойник управления (без браузера) |
+| `make pit-test` | Безголовая проверка модели: прогоняет все сценарии по 4 часа модельного времени (нужен только `python3`) |
+| `make pit-stop` | Останавливает симулятор; двойники и данные сохраняются |
+| `make clean` | Удаляет всё, включая данные и пароли |
 
-The Submission is the `main` branch at the moment of the Freeze; other branches are not evaluated.
+Ключи сценариев для `make scenario`:
 
-## License
+| Ключ | Значения |
+|---|---|
+| `ramp_a_closed`, `sh02_down`, `crusher_down`, `winter` | `true` / `false` |
+| `parked_trucks` | `0`–`4` |
+| `dispatch_mode` | `'"dynamic"'` / `'"fixed"'` (строка в JSON-кавычках) |
 
-The Submission is distributed under the MIT license, see [LICENSE](LICENSE). Copyright belongs to the Team: add the line `Copyright (c) 2026 <Team members>` to `LICENSE`.
+## Что открыть
+
+1. **Пульт диспетчера — http://localhost:8095.** Это главная визуализация. На ней план карьера с уступами (−15…−120 м), съездами, дорогами, экскаваторами, ККД, складами, отвалом и АЗС. Самосвалы движутся по координатам из двойников Ditto. Справа расположены блок «Что делать сейчас» (рекомендации модуля диспетчеризации), KPI, переключатели сценариев «что если», тренды и журнал событий. Клик по любому объекту показывает его `thingId`, features и attributes из Ditto.
+2. **Grafana — http://localhost:3000** (логин `admin`, пароль печатает `make pit`, он также лежит в `deploy/compose/.env`). Откройте **Dashboards → OpenEgiz Examples → Aktogay pit — карьер (TeamSpirit)**: руда и вскрыша в т/ч, склад перед мельницей, самосвалы на руде (факт и потребность), топливо, удельные расходы, очереди. Двойники и их иерархия видны в приложении **OpenEgiz → Twins** (родитель `kz.aktogay.pit:mine`).
+3. **Ditto API — http://localhost:8080/api/2/things/kz.aktogay.pit:mine** (логин `ditto`, пароль в `deploy/compose/.env`).
+
+Модельное время идёт в 6 раз быстрее реального (`PIT_SPEEDUP` в окружении). Показатели «за 1 ч» выходят на установившийся режим примерно через 10 минут реального времени после старта.
+
+## Содержимое репозитория
+
+| Путь | Содержимое |
+|---|---|
+| `team/pit/model.py` | Геометрия карьера, граф дорог, параметры техники; источники — в SUBMISSION.md |
+| `team/pit/sim.py` | Модель цикла, диспетчеризация, сценарии, анализ для диспетчера |
+| `team/pit/twins.py`, `setup_twins.py` | Определения 37 двойников и их создание в Ditto |
+| `team/pit/simulator.py` | Связь модели с платформой: MQTT `telemetry/…` → Ditto; события `opentwins/…/control` → сценарии |
+| `team/pit/web.py`, `team/pit/web/` | Пульт диспетчера (карта, KPI, сценарии); данные берёт только из Ditto |
+| `team/pit/dashboard.json` | Дашборд Grafana |
+| `team/pit/tests/test_sim.py` | Проверка модели по всем сценариям |
+| `team/compose.yml` | Overlay к `deploy/compose/docker-compose.yml` |
+| `SUBMISSION.md`, `presentation.pdf` | Описание решения и презентация |
+| `examples/mine/` | Пример рудника из Шаблона, решением не используется |
+| `OPENEGIZ.md`, `OPENEGIZ.ru.md` | Документация платформы OpenEgiz v1.0.4 |
+
+## Лицензия
+
+MIT, см. [LICENSE](LICENSE). Copyright (c) 2026 TeamSpirit. Код OpenEgiz распространяется на условиях собственных лицензий (см. `NOTICE`, `LICENSES/`).
 
 ---
 
-Platform: [aleka07/openegiz](https://github.com/aleka07/openegiz). If the platform was useful to you, support the project with a star on GitHub.
+Платформа: [aleka07/openegiz](https://github.com/aleka07/openegiz).

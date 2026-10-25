@@ -1,4 +1,4 @@
-.PHONY: up down ps logs smoke clean example-mine example-mine-stop install uninstall status endpoints upgrade upload-build generate-data copy-build unity-demo check-secrets check-public-host
+.PHONY: pit pit-stop scenario pit-test up down ps logs smoke clean example-mine example-mine-stop install uninstall status endpoints upgrade upload-build generate-data copy-build unity-demo check-secrets check-public-host
 
 # ---------------------------------------------------------------------------
 # Docker Compose deployment (laptops, CI, contest judges): deploy/compose/
@@ -9,7 +9,11 @@ COMPOSE_BASE := docker compose -f deploy/compose/docker-compose.yml
 # `make clean` forgets it.
 MINE_MARKER  := deploy/compose/.example-mine
 MINE_COMPOSE := examples/mine/compose.yml
-COMPOSE := $(COMPOSE_BASE)$(if $(wildcard $(MINE_MARKER)), -f $(MINE_COMPOSE))
+# TeamSpirit: the Aktogay-type pit (team/), loaded the same way once `make pit` has run.
+PIT_MARKER   := deploy/compose/.pit
+PIT_COMPOSE  := team/compose.yml
+PIT_PORT     ?= 8095
+COMPOSE := $(COMPOSE_BASE)$(if $(wildcard $(MINE_MARKER)), -f $(MINE_COMPOSE))$(if $(wildcard $(PIT_MARKER)), -f $(PIT_COMPOSE))
 
 ## Start the whole platform with Docker Compose (first run: generates credentials)
 up:
@@ -45,6 +49,27 @@ example-mine: up
 	@touch $(MINE_MARKER)
 	@echo "Example Mine running: Grafana -> Dashboards -> OpenEgiz Examples -> Example Mine"
 
+## TeamSpirit: start the platform plus the pit (twins, simulator + dispatch, dispatcher console, dashboard)
+pit: up
+	$(COMPOSE_BASE) -f $(PIT_COMPOSE) up -d --build --wait --wait-timeout 600
+	@touch $(PIT_MARKER)
+	@echo ""
+	@echo "  Dispatcher console (pit map, what-if scenarios):  http://localhost:$(PIT_PORT)"
+	@echo "  Grafana dashboard: Dashboards -> OpenEgiz Examples -> Aktogay pit (login printed above)"
+	@echo ""
+
+## Stop the pit simulator (twins and data stay)
+pit-stop:
+	$(COMPOSE_BASE) -f $(PIT_COMPOSE) stop pit-simulator
+
+## Set a what-if scenario through the control twin: make scenario K=ramp_a_closed V=true
+scenario:
+	@curl -fsS -X POST -H 'Content-Type: application/json' -d '{"$(K)": $(V)}' http://127.0.0.1:$(PIT_PORT)/api/scenario; echo
+
+## Headless check of the pit model (no Docker needed)
+pit-test:
+	python3 team/pit/tests/test_sim.py
+
 ## Stop the Example Mine simulator (twins and data stay)
 example-mine-stop:
 	$(COMPOSE_BASE) -f $(MINE_COMPOSE) stop mine-simulator
@@ -52,7 +77,7 @@ example-mine-stop:
 ## Stop the platform and DELETE all its data and credentials
 clean:
 	$(COMPOSE) down -v --remove-orphans
-	rm -f deploy/compose/.env $(MINE_MARKER)
+	rm -f deploy/compose/.env $(MINE_MARKER) $(PIT_MARKER)
 
 # ---------------------------------------------------------------------------
 # Helm deployment (servers): the chart at the repository root

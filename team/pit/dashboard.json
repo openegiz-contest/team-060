@@ -1,0 +1,514 @@
+{
+ "uid": "teamspirit-aktogay-pit",
+ "title": "Aktogay pit — карьер (TeamSpirit)",
+ "tags": [
+  "openegiz",
+  "mine",
+  "teamspirit"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "version": 1,
+ "refresh": "10s",
+ "time": {
+  "from": "now-30m",
+  "to": "now"
+ },
+ "description": "Цифровой двойник карьера типа Актогай: KPI из двойников Ditto (InfluxDB). Карта и сценарии — пульт диспетчера http://localhost:8095",
+ "links": [
+  {
+   "title": "Пульт диспетчера (карта и сценарии)",
+   "type": "link",
+   "url": "http://localhost:8095",
+   "targetBlank": true
+  }
+ ],
+ "panels": [
+  {
+   "id": 1,
+   "type": "stat",
+   "title": "Руда на ККД, т/ч (скользящий час)",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:crusher\" and r._field == \"value_ore_in_tph_1h_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "value",
+    "graphMode": "area",
+    "textMode": "value"
+   }
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "Склад перед мельницей, %",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:cos\" and r._field == \"value_level_pct_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "value",
+    "graphMode": "area",
+    "textMode": "value"
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "Мельница встанет через, ч (−1 = запас растёт)",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "h",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:cos\" and r._field == \"value_hours_left_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "value",
+    "graphMode": "area",
+    "textMode": "value"
+   }
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "Самосвалов в ожидании",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:mine\" and r._field == \"value_trucks_waiting_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "value",
+    "graphMode": "area",
+    "textMode": "value"
+   }
+  },
+  {
+   "id": 5,
+   "type": "timeseries",
+   "title": "Руда и вскрыша, т/ч",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 12,
+    "h": 8
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:mine\" and r._field == \"value_ore_tph_1h_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"руда\"}))"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:mine\" and r._field == \"value_waste_tph_1h_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"вскрыша\"}))"
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:crusher\" and r._field == \"value_throughput_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"ККД, мгновенно\"}))"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 6,
+   "type": "timeseries",
+   "title": "Склад КДР перед мельницей, т",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 4,
+    "w": 12,
+    "h": 8
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:cos\" and r._field == \"value_level_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"склад КДР\"}))"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:rom\" and r._field == \"value_level_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"рудный склад ROM\"}))"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 7,
+   "type": "timeseries",
+   "title": "Самосвалы: на руде факт / нужно по модели",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 12,
+    "w": 12,
+    "h": 7
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:dispatch\" and r._field == \"value_on_ore_trucks_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"на руде\"}))"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:dispatch\" and r._field == \"value_need_ore_trucks_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"нужно\"}))"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 8,
+   "type": "timeseries",
+   "title": "Топливо в баках самосвалов, %",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 12,
+    "w": 12,
+    "h": 7
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.parent == \"kz.aktogay.pit:mine\" and r.thingId =~ /:ht/ and r._field == \"value_fuel_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\", \"thingId\"])\n  |> group(columns: [\"thingId\"])\n  |> aggregateWindow(every: 30s, fn: last, createEmpty: false)"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 9,
+   "type": "timeseries",
+   "title": "Удельные расходы",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 19,
+    "w": 12,
+    "h": 7
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 3
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:mine\" and r._field == \"value_fuel_per_t_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"дизель, л/т\"}))"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:mine\" and r._field == \"value_energy_per_t_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"электроэнергия, кВт·ч/т\"}))"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 10,
+   "type": "timeseries",
+   "title": "Очереди у экскаваторов",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "opentwins-influxdb"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 19,
+    "w": 12,
+    "h": 7
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:sh01\" and r._field == \"value_queue_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"ЭКГ-1\"}))"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:sh02\" and r._field == \"value_queue_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"ЭКГ-2\"}))"
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:sh03\" and r._field == \"value_queue_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"ЭКГ-3\"}))"
+    },
+    {
+     "refId": "D",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "opentwins-influxdb"
+     },
+     "query": "from(bucket: \"default\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.thingId == \"kz.aktogay.pit:crusher\" and r._field == \"value_queue_properties_value\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({r with _field: \"ККД\"}))"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  }
+ ]
+}
