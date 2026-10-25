@@ -1,0 +1,70 @@
+# Runs the Submission from scratch the way the README says (make pit) on a
+# clean GitHub-hosted Ubuntu runner and checks that the pit is alive.
+# Start it by hand: Actions -> "Pit check" -> Run workflow.
+name: Pit check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "team/**"
+      - "Makefile"
+      - "deploy/**"
+      - ".github/workflows/pit-check.yml"
+
+jobs:
+  pit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker system prune -af
+          df -h /
+
+      - name: Model test (no Docker)
+        run: make pit-test
+
+      - name: make pit (as in README)
+        run: |
+          sudo apt-get update && sudo apt-get install -y make
+          make pit
+
+      - name: Let the simulator run
+        run: sleep 90
+
+      - name: Check the dispatcher console
+        run: |
+          curl -fsS http://localhost:8095/api/health; echo
+          curl -fsS http://localhost:8095/ | grep -qi "<html"
+
+      - name: Check Grafana
+        run: curl -fsS http://localhost:3000/api/health; echo
+
+      - name: Check the twins in Ditto
+        run: |
+          set -a; . deploy/compose/.env; set +a
+          PORT="${DITTO_PORT:-8080}"
+          curl -fsS -u "ditto:${DITTO_PASSWORD}" "http://localhost:${PORT}/api/2/things/kz.aktogay.pit:mine" | head -c 2000; echo
+          echo "--- truck ht01:"
+          curl -fsS -u "ditto:${DITTO_PASSWORD}" "http://localhost:${PORT}/api/2/things/kz.aktogay.pit:ht01/features" | head -c 2000; echo
+          echo "--- pit twins:"
+          curl -fsS -u "ditto:${DITTO_PASSWORD}" -G "http://localhost:${PORT}/api/2/search/things/count" \
+            --data-urlencode 'filter=like(thingId,"kz.aktogay.pit:*")'; echo
+
+      - name: Check a what-if scenario
+        run: |
+          make scenario K=ramp_a_closed V=true
+          sleep 20
+          make scenario K=ramp_a_closed V=false
+
+      - name: Status and logs
+        if: always()
+        run: |
+          make ps || true
+          docker compose -f deploy/compose/docker-compose.yml -f team/compose.yml logs --tail=200 pit-setup pit-simulator pit-console || true
+          docker stats --no-stream || true
